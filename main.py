@@ -3,8 +3,7 @@ from music_to_vector import *
 from vector_to_melody import *
 
 if __name__ == "__main__":
-    print("hello")
     melodies = musicTxt_to_vector()
+    settings = environment.UserSettings()
     s = vector_to_stream(melodies[0])
-    
-    s.show('text')
+    s.show('musicxml', app = r'C:\\Program Files\\MuseScore 4\\bin\\MuseScore4.exe')

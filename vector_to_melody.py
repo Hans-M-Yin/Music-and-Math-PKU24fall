@@ -17,8 +17,8 @@ def num_to_note(num):
     note_str = note_dict[alpha] + str(belta)
     return note_str
 
-
-def vector_to_stream(vector:list[int]) -> stream:
+# transformation from list[int] (as music_to_vector returned) to music21 stream
+def vector_to_stream(vector:list[int]) -> stream.Stream:
     s = stream.Stream()
     current_length = 0
     current_type = -1
@@ -36,7 +36,10 @@ def vector_to_stream(vector:list[int]) -> stream:
                     r = note.Note(num_to_note(prev_num), quarterLength = current_length / 2)
                     s.append(r)
             current_type = 0
-            current_length = 1
+            if prev_num != num:
+                current_length = 1
+            else:
+                current_length += 1
             prev_num = num
             flag = True
         elif 21 <= num and num <= 108:
@@ -48,7 +51,10 @@ def vector_to_stream(vector:list[int]) -> stream:
                     r = note.Note(num_to_note(prev_num), quarterLength = current_length / 2)
                     s.append(r)
             current_type = 1
-            current_length = 1
+            if prev_num != num:
+                current_length = 1
+            else:
+                current_length += 1
             prev_num = num
             flag = True
         elif num == 20:
