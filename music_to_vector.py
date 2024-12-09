@@ -2,7 +2,7 @@ import os
 
 
 
-# 把一个音符映射到21-108的某个数中（对应钢琴上的88个键）
+# 把一个音符（形式如music.txt）映射到21-108的某个数中（对应钢琴上的88个键）
 def musical_note_to_map(note):
     note_dict = {'a': 0, 'b': 2, 'c': 3, 'd': 5, 'e': 7, 'f': 8, 'g': 10}
     bias = 0
@@ -22,7 +22,7 @@ def musical_note_to_map(note):
         return -1
     return value+bias
 
-# 把一行旋律转换成vector
+# 把一行旋律（形式如music.txt）转换成list[int]
 def music_to_vector(melody):
     v = []
     for note in melody:
@@ -53,10 +53,11 @@ def musicTxt_to_vector():
     v_list = []
     
     with open('music_data/music.txt') as file:
-        contents = file.readlines
+        contents = file.readlines()
         for line in contents:
             cnt = cnt+1
             melody = line.split(' ')
+            
             v = music_to_vector(melody)
             v_list.append(v)
     
