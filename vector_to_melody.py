@@ -4,7 +4,7 @@ from music21 import *
 
 # 把21-108代表音符的数字重新转换成音符
 def num_to_note(num):
-    print(num)
+    # print(num)
     note_dict = {0: 'A', 1: 'A#', 2: 'B', 3: 'C', 4: 'C#', 5: 'D', 6: 'D#', 7: 'E', 8: 'F', 
                   9: 'F#', 10: 'G', 11: 'G#'}
     if (num < 21) | (num > 108):
