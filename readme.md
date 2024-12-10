@@ -16,6 +16,15 @@
 
 将一个4小节的旋律片段转化成长度为32位的向量进行存储
 
+### 3. 遗传算法
+
+关于music21用法的备注
+1. stream是一个list list[0]是key（调号）1及往后都是音符note。note分note.Note和note.Rest两种。for n in stream.notes不会遍历休止符。
+2. interval是音程
+3. transpose转调
+4. 必须把音符按出现顺序append。否则会bug（offset不对）
+5. 写了倒影 逆行 移调 交叉 音高的随机变化 没有写节奏的随机变化，我感觉节奏是可以通过倒影 逆行 移调 交叉实现的。但是音与音之间的音程关系很难有随机变化。
+
 
 #### 一些备注
 
