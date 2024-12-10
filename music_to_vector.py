@@ -25,7 +25,8 @@ def musical_note_to_map(note):
 # 把一行旋律（形式如music.txt）转换成list[int]
 def music_to_vector(melody):
     v = []
-    for note in melody:
+    for i in range(len(melody)-1):
+        note = melody[i]
         if note ==' ':
             continue
         elif note[0] =='-':
@@ -45,7 +46,8 @@ def music_to_vector(melody):
         print(len(v))
         print('wrong len of melody')
         exit(1)
-    return v
+    
+    return (v, melody[32].strip())
 
 # 把music.txt中的所有转成向量的旋律一起放到一个向量里
 def musicTxt_to_vector():
