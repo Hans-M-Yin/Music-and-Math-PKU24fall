@@ -27,7 +27,7 @@ def vector_to_stream(vector:list[int], my_key:str) -> stream.Stream:
     # current_type = 0 for rest
     # current_type = 1 for note
     flag = False
-    for i in range(len(vector)-1):
+    for i in range(len(vector)):
         num = vector[i]
         if num == 0:
             if flag :
@@ -67,6 +67,22 @@ def vector_to_stream(vector:list[int], my_key:str) -> stream.Stream:
     
     temp_key = key.Key(my_key)
     s.insert(0,temp_key)
+    all_pitches = []
+    for p in temp_key.pitches:
+        temp_p = pitch.Pitch(p)
+        for oct in range(-2,3):
+            # print(p.octave)
+            # print(oct)
+            temp_p.octave = p.octave + oct
+            # print(temp_p)
+            all_pitches.append(pitch.Pitch(temp_p))
+    # all_pitches = [pitch.Pitch(p).transpose(octave) for p in temp_key.pitches for octave in range(-2, 3)]
+    # print(all_pitches)
+    for n in s.notes:
+        # print(n.pitch)
+        if n.pitch not in all_pitches:
+            transposed_pitch = pitch.Pitch(n.pitch).getEnharmonic()
+            n.name = transposed_pitch.name
     return s     
 
 # 把向量重新转换成旋律

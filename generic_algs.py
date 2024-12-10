@@ -9,10 +9,12 @@ class stream_with_score:
 def fitness_function (melody:stream) -> float:
     return 0.0
 
+
+
 def call_operator (melody:stream) -> stream.Stream:
     return stream.Stream()
 
-def run_generic_algorithm(melodies:list[stream.Stream], iterations = 100, criteria = 1.0, total = 20, fraction = 0.5) -> stream:
+def run_generic_algorithm(melodies:list[stream.Stream], iterations = 100, criteria = 1.0, total = 15, fraction = 0.6) -> stream:
     iter = 0
     best_performance = 100.0
 
