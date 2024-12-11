@@ -17,14 +17,10 @@ def fitness_function (melody:stream) -> float:
     return 0.0
 
 def operator_shifttone_2 (melody1:stream, melody2:stream) -> stream.Stream:
+    # print(melody1[0])
     target_key = key.Key(melody2[0].tonic, melody2[0].mode)
     inter = interval.Interval(melody1[0].tonic, target_key.tonic)
-    # print(inter)
-    
     s_transposed = melody1.transpose(inter)
-    # s_transposed.show('musicxml', app = r'C:\\Program Files\\MuseScore 4\\bin\\MuseScore4.exe')
-    s_transposed[0] = target_key
-    # print(s_transposed[0])
     return octave_normalize(s_transposed)
 
 def operator_shifttone_1(melody:stream) -> stream.Stream:
@@ -46,16 +42,16 @@ def handle_crossover(melody1:stream, random_start1: int, random_end1: int):
             elif cur1 < random_start1 and cur1 + n.quarterLength*2 > random_start1:
                 s_1.append(note.Note(n.pitch, quarterLength = (random_start1-cur1)/2))
                 if cur1 + n.quarterLength*2 <= random_end1:
-                    m_1.append(note.Note(n.pitch, quarterLength = (cur1 + n.quarterLength - random_start1)/2))
+                    m_1.append(note.Note(n.pitch, quarterLength = (cur1 + n.quarterLength*2 - random_start1)/2))
                 else:
                     m_1.append(note.Note(n.pitch, quarterLength = (random_end1 - random_start1)/2))
-                    e_1.append(note.Note(n.pitch, quarterLength = (cur1 + n.quarterLength - random_end1)/2))
+                    e_1.append(note.Note(n.pitch, quarterLength = (cur1 + n.quarterLength*2 - random_end1)/2))
             elif cur1 >= random_start1 and cur1 + n.quarterLength*2 <= random_end1:
                 m_1.append(n)
             elif cur1 < random_end1 and cur1 + n.quarterLength*2 > random_end1:
                 m_1.append(note.Note(n.pitch, quarterLength = (random_end1-cur1)/2))
-                e_1.append(note.Note(n.pitch, quarterLength = (cur1 + n.quarterLength - random_end1)/2))
-            elif cur1 > random_end1:
+                e_1.append(note.Note(n.pitch, quarterLength = (cur1 + n.quarterLength*2 - random_end1)/2))
+            elif cur1 >= random_end1:
                 e_1.append(n)
         elif isinstance(n,note.Rest):
             if cur1 + n.quarterLength*2 <= random_start1:
@@ -63,32 +59,35 @@ def handle_crossover(melody1:stream, random_start1: int, random_end1: int):
             elif cur1 < random_start1 and cur1 + n.quarterLength*2 > random_start1:
                 s_1.append(note.Rest(quarterLength = (random_start1-cur1)/2))
                 if cur1 + n.quarterLength*2 <= random_end1:
-                    m_1.append(note.Rest(quarterLength = (cur1 + n.quarterLength - random_start1)/2))
+                    m_1.append(note.Rest(quarterLength = (cur1 + n.quarterLength*2 - random_start1)/2))
                 else:
                     m_1.append(note.Rest(quarterLength = (random_end1 - random_start1)/2))
-                    e_1.append(note.Rest(quarterLength = (cur1 + n.quarterLength - random_end1)/2))
+                    e_1.append(note.Rest(quarterLength = (cur1 + n.quarterLength*2 - random_end1)/2))
             elif cur1 >= random_start1 and cur1 + n.quarterLength*2 <= random_end1:
                 m_1.append(n)
             elif cur1 < random_end1 and cur1 + n.quarterLength*2 > random_end1:
                 m_1.append(note.Rest(quarterLength = (random_end1-cur1)/2))
-                e_1.append(note.Rest(quarterLength = (cur1 + n.quarterLength - random_end1)/2))
-            elif cur1 > random_end1:
+                e_1.append(note.Rest(quarterLength = (cur1 + n.quarterLength*2 - random_end1)/2))
+            elif cur1 >= random_end1:
                 e_1.append(n)
         cur1+=n.quarterLength*2
     
     return (s_1, m_1, e_1)
+
+
 
 def operator_crossover(melody1:stream, melody2:stream):
     
     # melody1.show('musicxml', app = r'C:\\Program Files\\MuseScore 4\\bin\\MuseScore4.exe')
     # melody2.show('musicxml', app = r'C:\\Program Files\\MuseScore 4\\bin\\MuseScore4.exe')
     melody1 = operator_shifttone_2(melody1, melody2)
-    random_length = random.randint(2, 32)
+    
+    random_length = random.randint(2, 30)
     random_start1 = random.randint(0,32-random_length)
     random_end1 = random_start1 + random_length
     random_start2 = random.randint(0,32-random_length)
     random_end2 = random_start2 + random_length
-
+    
     s_1, m_1, e_1 = handle_crossover(melody1, random_start1, random_end1)
     s_2, m_2, e_2 = handle_crossover(melody2, random_start2, random_end2)
     
@@ -114,6 +113,8 @@ def operator_crossover(melody1:stream, melody2:stream):
     for elem in e_2:
         n_2.append(elem)
     
+    # print(n_1.quarterLength)
+    # print(n_2.quarterLength)
     n_1.insert(0,key.Key(melody2[0].tonic, melody2[0].mode))
     n_2.insert(0,key.Key(melody2[0].tonic, melody2[0].mode))
     # n_1.show('musicxml', app = r'C:\\Program Files\\MuseScore 4\\bin\\MuseScore4.exe')
@@ -124,12 +125,12 @@ def operator_reflection(melody:stream) -> stream.Stream:
 
     ns = stream.Stream()
     pivot_pitch = key.Key(random_key_name = random.choice(keys)).tonic
-    print(pivot_pitch)
+    # print(pivot_pitch)
     for n in melody.notes:
         reflected_pitch = pivot_pitch.transpose(-1 * (n.pitch.midi - pivot_pitch.midi))
         # print(reflected_pitch)
         reflected_note = note.Note(reflected_pitch, quarterLength=n.quarterLength)
-        print(reflected_note)
+        # print(reflected_note)
         ns.append(reflected_note)
     
     nk = ns.analyze('key')
@@ -175,10 +176,11 @@ def octave_normalize(melody:stream) -> stream.Stream:
                 highest_note = element
 
     transform = 0
+    
     if lowest_note.pitch > pitch.Pitch('C5'):
-        transform = lowest_note.pitch.octave - 4
+        transform = 4 - lowest_note.pitch.octave
     elif highest_note.pitch < pitch.Pitch('C4'):
-        transform = highest_note.pitch.octave - 4
+        transform = 4 - highest_note.pitch.octave
     melody = melody.transpose(transform * 12)
     return melody
 
@@ -219,24 +221,29 @@ def run_generic_algorithm(melodies:list[stream.Stream], iterations = 1, criteria
         population = population[:total]
         best_performance = population[0].score
 
-        for i in range(0,1):
-            op = random.randint(0,4)
+        for i in range(0,100):
+            op = 0
             
             if op == 0:
-                rd2 = random.randint(0,len(population))
+                print(0)
+                rd2 = random.randint(0,len(population)-1)
                 ns1, ns2 = operator_crossover(population[i].stream, population[rd2].stream)
                 population.append(stream_with_score(ns1))
                 population.append(stream_with_score(ns2))
-                ns.show('musicxml', app = r'C:\\Program Files\\MuseScore 4\\bin\\MuseScore4.exe')
+                ns1.show('musicxml', app = r'C:\\Program Files\\MuseScore 4\\bin\\MuseScore4.exe')
+                ns2.show('musicxml', app = r'C:\\Program Files\\MuseScore 4\\bin\\MuseScore4.exe')
             elif op == 1:
+                print(1)
                 ns = operator_reflection(population[i].stream)
                 population.append(stream_with_score(ns))
                 ns.show('musicxml', app = r'C:\\Program Files\\MuseScore 4\\bin\\MuseScore4.exe')
             elif op == 2:
+                print(2)
                 ns = operator_inversion(population[i].stream)
                 population.append(stream_with_score(ns))
                 ns.show('musicxml', app = r'C:\\Program Files\\MuseScore 4\\bin\\MuseScore4.exe')
             else:
+                print(3)
                 ns = operator_basic_mutation(population[i].stream)
                 population.append(stream_with_score(ns))
                 ns.show('musicxml', app = r'C:\\Program Files\\MuseScore 4\\bin\\MuseScore4.exe')
