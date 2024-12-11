@@ -178,15 +178,18 @@ def octave_normalize(melody:stream) -> stream.Stream:
         if isinstance(element, note.Note):  # 确保是音符对象
             if lowest_note is None or element.pitch < lowest_note.pitch:
                 lowest_note = element
-            elif highest_note is None or element.pitch < highest_note.pitch:
+            elif highest_note is None or element.pitch > highest_note.pitch:
                 highest_note = element
 
+    if (isinstance(lowest_note, note.Note) is False or isinstance(highest_note, note.Note) is False):
+        return melody
+    
     transform = 0
     
     if lowest_note.pitch > pitch.Pitch('C5'):
-        transform = 4 - lowest_note.pitch.octave
+        transform = 4 - int(lowest_note.pitch.octave)
     elif highest_note.pitch < pitch.Pitch('C4'):
-        transform = 4 - highest_note.pitch.octave
+        transform = 4 - int(highest_note.pitch.octave)
     melody = melody.transpose(transform * 12)
     return melody
 
@@ -229,8 +232,8 @@ def run_generic_algorithm(melodies:list[stream.Stream], iterations = 1, criteria
         population = population[:total]
         best_performance = population[0].score
 
-        for i in range(0,100):
-            op = random.randint(0,4)
+        for i in range(0,2000):
+            op = random.randint(-1,4)
             
             if op == 0:
                 print(0)
@@ -238,8 +241,10 @@ def run_generic_algorithm(melodies:list[stream.Stream], iterations = 1, criteria
                 ns1, ns2 = operator_crossover(population[i].stream, population[rd2].stream)
                 population.append(stream_with_score(ns1))
                 population.append(stream_with_score(ns2))
-                print(ns1.quarterLength)
-                print(ns2.quarterLength)
+                assert(ns1.quarterLength == 16)
+                assert(ns2.quarterLength == 16)
+                # print(ns1.quarterLength)
+                # print(ns2.quarterLength)
                 # ns1.show('musicxml', app = r'C:\\Program Files\\MuseScore 4\\bin\\MuseScore4.exe')
                 # ns2.show('musicxml', app = r'C:\\Program Files\\MuseScore 4\\bin\\MuseScore4.exe')
             elif op == 1:
@@ -247,18 +252,21 @@ def run_generic_algorithm(melodies:list[stream.Stream], iterations = 1, criteria
                 ns = operator_reflection(population[i].stream)
                 # print(ns.quarterLength)
                 population.append(stream_with_score(ns))
+                assert(ns.quarterLength == 16)
                 # ns.show('musicxml', app = r'C:\\Program Files\\MuseScore 4\\bin\\MuseScore4.exe')
             elif op == 2:
                 print(2)
                 ns = operator_inversion(population[i].stream)
                 # print(ns.quarterLength)
                 population.append(stream_with_score(ns))
-                ns.show('musicxml', app = r'C:\\Program Files\\MuseScore 4\\bin\\MuseScore4.exe')
+                assert(ns.quarterLength == 16)
+                # ns.show('musicxml', app = r'C:\\Program Files\\MuseScore 4\\bin\\MuseScore4.exe')
             else:
                 print(3)
                 ns = operator_basic_mutation(population[i].stream)
                 print(ns.quarterLength)
                 population.append(stream_with_score(ns))
+                assert(ns.quarterLength == 16)
                 # ns.show('musicxml', app = r'C:\\Program Files\\MuseScore 4\\bin\\MuseScore4.exe')
 
     return population[0].stream
