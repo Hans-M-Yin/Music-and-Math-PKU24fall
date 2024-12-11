@@ -126,12 +126,15 @@ def operator_reflection(melody:stream) -> stream.Stream:
     ns = stream.Stream()
     pivot_pitch = key.Key(random_key_name = random.choice(keys)).tonic
     # print(pivot_pitch)
-    for n in melody.notes:
-        reflected_pitch = pivot_pitch.transpose(-1 * (n.pitch.midi - pivot_pitch.midi))
-        # print(reflected_pitch)
-        reflected_note = note.Note(reflected_pitch, quarterLength=n.quarterLength)
-        # print(reflected_note)
-        ns.append(reflected_note)
+    for i in range(1,len(melody)):
+        if isinstance(melody[i], note.Note):
+            reflected_pitch = pivot_pitch.transpose(-1 * (melody[i].pitch.midi - pivot_pitch.midi))
+            # print(reflected_pitch)
+            reflected_note = note.Note(reflected_pitch, quarterLength=melody[i].quarterLength)
+            # print(reflected_note)
+            ns.append(reflected_note)
+        else:
+            ns.append(melody[i])
     
     nk = ns.analyze('key')
     ns.insert(0,nk)
@@ -139,28 +142,31 @@ def operator_reflection(melody:stream) -> stream.Stream:
 
 def operator_inversion(melody:stream) -> stream.Stream:
 
-    total = len(melody.notes)
-    rand_start = random.randint(0,total)
-    rand_end = random.randint(rand_start+1, total+1)
+    total = len(melody)
+    rand_start = random.randint(0,total-2)
+    rand_end = random.randint(rand_start+1, total)
 
-    cnt=0
+    # print(melody.quarterLength)
     ns = stream.Stream()
     ns.append(key.Key(melody[0].tonic, melody[0].mode))
     flag = False
     m = stream.Stream()
-    for n in melody.notes:
-        if cnt<rand_start:
-            ns.append(n)
-        elif cnt >= rand_start and cnt < rand_end:
-            m.append(n)
+    for w in range(1,total):
+        if w<rand_start:
+            ns.append(melody[w])
+        elif w >= rand_start and w < rand_end:
+            m.append(melody[w])
         else:
             if flag == False:
                 l = len(m)
                 for i in range(l):
                     ns.append(m[l-i-1])
                 flag = True
-            ns.append(n)
-        cnt += 1
+            ns.append(melody[w])
+    if flag == False:
+        l = len(m)
+        for i in range(l):
+            ns.append(m[l-i-1])
     return octave_normalize(ns)
 
 def octave_normalize(melody:stream) -> stream.Stream:
@@ -186,18 +192,20 @@ def octave_normalize(melody:stream) -> stream.Stream:
 
 def operator_basic_mutation(melody:stream) -> stream.Stream:
     
-    size = random.randint(0,len(melody)-1)
+    size = random.randint(1,len(melody)-2)
     
-    change_mask = np.random.choice(range(1, len(melody)), size=size, replace=False)
+    change_mask = np.random.choice(range(1, len(melody)-1), size=size, replace=False)
     change_mask.sort()
 
     change_delta = np.round(np.random.normal(0, 2, len(change_mask))).astype(int)
+    # print(len(change_mask))
+    # print(len(change_delta))
     temp = []
     for i in range(len(change_mask)):
         if isinstance(melody[int(change_mask[i])], note.Note):
-            # print(melody[int(change_mask[i])])
-            # print(int(change_delta[i]))
             temp.append(melody[int(change_mask[i])].transpose(int(change_delta[i])))
+        else:
+            temp.append(melody[int(change_mask[i])])
     ns = stream.Stream()
     ns.append(key.Key(melody[0].tonic, melody[0].mode))
     cur = 0
@@ -222,7 +230,7 @@ def run_generic_algorithm(melodies:list[stream.Stream], iterations = 1, criteria
         best_performance = population[0].score
 
         for i in range(0,100):
-            op = 0
+            op = random.randint(0,4)
             
             if op == 0:
                 print(0)
@@ -230,22 +238,27 @@ def run_generic_algorithm(melodies:list[stream.Stream], iterations = 1, criteria
                 ns1, ns2 = operator_crossover(population[i].stream, population[rd2].stream)
                 population.append(stream_with_score(ns1))
                 population.append(stream_with_score(ns2))
-                ns1.show('musicxml', app = r'C:\\Program Files\\MuseScore 4\\bin\\MuseScore4.exe')
-                ns2.show('musicxml', app = r'C:\\Program Files\\MuseScore 4\\bin\\MuseScore4.exe')
+                print(ns1.quarterLength)
+                print(ns2.quarterLength)
+                # ns1.show('musicxml', app = r'C:\\Program Files\\MuseScore 4\\bin\\MuseScore4.exe')
+                # ns2.show('musicxml', app = r'C:\\Program Files\\MuseScore 4\\bin\\MuseScore4.exe')
             elif op == 1:
                 print(1)
                 ns = operator_reflection(population[i].stream)
+                # print(ns.quarterLength)
                 population.append(stream_with_score(ns))
-                ns.show('musicxml', app = r'C:\\Program Files\\MuseScore 4\\bin\\MuseScore4.exe')
+                # ns.show('musicxml', app = r'C:\\Program Files\\MuseScore 4\\bin\\MuseScore4.exe')
             elif op == 2:
                 print(2)
                 ns = operator_inversion(population[i].stream)
+                # print(ns.quarterLength)
                 population.append(stream_with_score(ns))
                 ns.show('musicxml', app = r'C:\\Program Files\\MuseScore 4\\bin\\MuseScore4.exe')
             else:
                 print(3)
                 ns = operator_basic_mutation(population[i].stream)
+                print(ns.quarterLength)
                 population.append(stream_with_score(ns))
-                ns.show('musicxml', app = r'C:\\Program Files\\MuseScore 4\\bin\\MuseScore4.exe')
+                # ns.show('musicxml', app = r'C:\\Program Files\\MuseScore 4\\bin\\MuseScore4.exe')
 
     return population[0].stream
