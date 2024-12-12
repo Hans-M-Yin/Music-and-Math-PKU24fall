@@ -138,7 +138,7 @@ def operator_reflection(melody:stream) -> stream.Stream:
     
     nk = ns.analyze('key')
     ns.insert(0,nk)
-    return octave_normalize(ns)
+    return keyharmony(octave_normalize(ns))
 
 def operator_inversion(melody:stream) -> stream.Stream:
 
@@ -220,6 +220,15 @@ def operator_basic_mutation(melody:stream) -> stream.Stream:
             ns.append(melody[i])
     return octave_normalize(ns)
 
+def keyharmony(melody:stream) -> stream.Stream:
+    ks = melody[0]
+    for n in melody.notes:  # we need to recurse because the notes are in measures...
+        nStep = n.pitch.step
+        rightAccidental = ks.accidentalByStep(nStep)
+        n.pitch.accidental = rightAccidental
+    assert(melody.quarterLength == 16 )
+    return melody
+
 def run_generic_algorithm(melodies:list[stream.Stream], iterations = 1, criteria = 1.0, total = 15, fraction = 0.7) -> stream:
     iter = 0
     best_performance = 100.0
@@ -232,8 +241,8 @@ def run_generic_algorithm(melodies:list[stream.Stream], iterations = 1, criteria
         population = population[:total]
         best_performance = population[0].score
 
-        for i in range(0,2000):
-            op = random.randint(-1,4)
+        for i in range(0,10):
+            op = 1
             
             if op == 0:
                 print(0)
@@ -253,7 +262,7 @@ def run_generic_algorithm(melodies:list[stream.Stream], iterations = 1, criteria
                 # print(ns.quarterLength)
                 population.append(stream_with_score(ns))
                 assert(ns.quarterLength == 16)
-                # ns.show('musicxml', app = r'C:\\Program Files\\MuseScore 4\\bin\\MuseScore4.exe')
+                ns.show('musicxml', app = r'C:\\Program Files\\MuseScore 4\\bin\\MuseScore4.exe')
             elif op == 2:
                 print(2)
                 ns = operator_inversion(population[i].stream)

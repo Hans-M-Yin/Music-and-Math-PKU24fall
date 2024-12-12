@@ -9,4 +9,5 @@ if __name__ == "__main__":
     for i in range(0,15):
         melodies.append(vector_to_stream(vecs[i][0], vecs[i][1]))
     s = run_generic_algorithm(melodies)
-    # s.show('musicxml', app = r'C:\\Program Files\\MuseScore 4\\bin\\MuseScore4.exe')
+    # s = melodies[3]
+    s.show('musicxml', app = r'C:\\Program Files\\MuseScore 4\\bin\\MuseScore4.exe')
