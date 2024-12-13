@@ -1,6 +1,7 @@
 from music21 import *
 import random
 import numpy as np
+from collections import Counter
 
 keys = [
     'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B',  # 大调
@@ -13,8 +14,76 @@ class stream_with_score:
         self.score = fitness_function(strm)
     
 
-def fitness_function (melody:stream) -> float:
-    return 0.0
+def fitness_function(melody: stream.Stream) -> float:
+
+    # 音符频率
+    all_notes = [element.pitch.name for element in melody.flatten().notes if isinstance(element, note.Note)]
+    if not all_notes:
+        return 0.0
+    note_counts = Counter(all_notes)
+    variance = np.var(list(note_counts.values()))
+    note_fitness = 1 / (1 + variance) if variance >= 0 else 0.0
+
+    # 音程
+    intervals = []
+    prev_note = None
+    for element in melody.flatten().notes:
+        if isinstance(element, note.Note):
+            if prev_note is not None:
+                try:
+                    intvl = interval.Interval(prev_note.pitch, element.pitch).simpleName
+                    intervals.append(intvl)
+                except Exception as e:
+                    print(f"Error calculating interval: {e}")
+            prev_note = element
+    num_intervals = len(intervals)
+    consonant_count = sum(1 for intvl in intervals if intvl in ['P1', 'm3', 'M3', 'P5', 'm6', 'M6', 'P8'])
+    interval_fitness = consonant_count / num_intervals if num_intervals > 0 else 0.0
+
+    # 节奏规律性，计算相邻音符的时长差值的方差
+    durations = [element.duration.quarterLength for element in melody.flatten().notes if isinstance(element, note.Note)]
+    if len(durations) < 2:
+        rhythm_fitness = 0.0
+    else:
+        durations_diff = [durations[i + 1] - durations[i] for i in range(len(durations) - 1)]
+        variance_rhythm = np.var(durations_diff)
+        rhythm_fitness = 1 / (1 + variance_rhythm) if variance_rhythm >= 0 else 0.0
+
+    # 音高差
+    pitches = [element.pitch.midi for element in melody.flatten().notes if isinstance(element, note.Note)]
+    if not pitches:
+        range_fitness = 0.0
+    else:
+        pitch_range = max(pitches) - min(pitches)
+        if 12 <= pitch_range <= 24:# 12 24 可改为其他值
+            range_fitness = 1
+        else:
+            range_fitness = 1 / (1 + abs(pitch_range - 18))  # 18可改为其他值
+
+    # 旋律重复比例
+    note_pairs = [(melody.flatten().notes[i].pitch.name, melody.flatten().notes[i + 1].pitch.name)
+                  for i in range(len(melody.flatten().notes) - 1) if isinstance(melody.flatten().notes[i], note.Note) and
+                  isinstance(melody.flatten().notes[i + 1], note.Note)]
+    pair_counts = Counter(note_pairs)
+    total_pairs = len(note_pairs)
+    repeated_count = sum(count for _, count in pair_counts.items() if count > 1)
+    repetition_fitness = 1 - (repeated_count / total_pairs if total_pairs > 0 else 0)
+
+    weight_note = 0.2  # 音符频率权重
+    weight_interval = 0.25  # 音程权重
+    weight_rhythm = 0.25  # 节奏规律性权重
+    weight_range = 0.15  # 音域范围合理性权重
+    weight_repetition = 0.15  # 旋律重复性权重
+    print("note_fitness: ", note_fitness)
+    print("interval_fitness: ", interval_fitness)
+    print("rhythm_fitness: ", rhythm_fitness)
+    print("range_fitness: ", range_fitness)
+    print("repetition_fitness: ", repetition_fitness)
+    return (weight_note * note_fitness +
+            weight_interval * interval_fitness +
+            weight_rhythm * rhythm_fitness +
+            weight_range * range_fitness +
+            weight_repetition * repetition_fitness)
 
 def operator_shifttone_2 (melody1:stream, melody2:stream) -> stream.Stream:
     # print(melody1[0])
