@@ -74,11 +74,11 @@ def fitness_function(melody: stream.Stream) -> float:
     weight_rhythm = 0.25  # 节奏规律性权重
     weight_range = 0.15  # 音域范围合理性权重
     weight_repetition = 0.15  # 旋律重复性权重
-    print("note_fitness: ", note_fitness)
-    print("interval_fitness: ", interval_fitness)
-    print("rhythm_fitness: ", rhythm_fitness)
-    print("range_fitness: ", range_fitness)
-    print("repetition_fitness: ", repetition_fitness)
+    # print("note_fitness: ", note_fitness)
+    # print("interval_fitness: ", interval_fitness)
+    # print("rhythm_fitness: ", rhythm_fitness)
+    # print("range_fitness: ", range_fitness)
+    # print("repetition_fitness: ", repetition_fitness)
     return (weight_note * note_fitness +
             weight_interval * interval_fitness +
             weight_rhythm * rhythm_fitness +
@@ -305,7 +305,7 @@ def run_generic_algorithm(melodies:list[stream.Stream], iterations = 1, criteria
             op = random.randint(-1,4)
             
             if op == 0:
-                print(0)
+                #print(0)
                 rd2 = random.randint(0,len(population)-1)
                 ns1, ns2 = operator_crossover(population[i].stream, population[rd2].stream)
                 population.append(stream_with_score(ns1))
@@ -317,25 +317,28 @@ def run_generic_algorithm(melodies:list[stream.Stream], iterations = 1, criteria
                 # ns1.show('musicxml', app = r'C:\\Program Files\\MuseScore 4\\bin\\MuseScore4.exe')
                 # ns2.show('musicxml', app = r'C:\\Program Files\\MuseScore 4\\bin\\MuseScore4.exe')
             elif op == 1:
-                print(1)
+                #print(1)
                 ns = operator_reflection(population[i].stream)
                 # print(ns.quarterLength)
                 population.append(stream_with_score(ns))
                 assert(ns.quarterLength == 16)
                 # ns.show('musicxml', app = r'C:\\Program Files\\MuseScore 4\\bin\\MuseScore4.exe')
             elif op == 2:
-                print(2)
+                #print(2)
                 ns = operator_inversion(population[i].stream)
                 # print(ns.quarterLength)
                 population.append(stream_with_score(ns))
                 assert(ns.quarterLength == 16)
                 # ns.show('musicxml', app = r'C:\\Program Files\\MuseScore 4\\bin\\MuseScore4.exe')
             else:
-                print(3)
+                #print(3)
                 ns = operator_basic_mutation(population[i].stream)
-                print(ns.quarterLength)
+                #print(ns.quarterLength)
                 population.append(stream_with_score(ns))
                 assert(ns.quarterLength == 16)
                 # ns.show('musicxml', app = r'C:\\Program Files\\MuseScore 4\\bin\\MuseScore4.exe')
-
-    return population[0].stream
+    print("Generic Algorithms done.")
+    stream_list = []
+    for i in range(10):
+        stream_list.append(population[i].stream)
+    return stream_list
