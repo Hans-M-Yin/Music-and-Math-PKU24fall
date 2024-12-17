@@ -1,5 +1,6 @@
 ### 运行环境
 - choice1: Linux下运行setup.sh即可
+
 - choice2: Linux下安装flask, lilypond, music21, python=3.12.3
 
 运行app.py生成本地网页
