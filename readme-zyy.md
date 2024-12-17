@@ -25,4 +25,4 @@
 - population的排序，即population = sorted(population, key=lambda x: x.score)这一行应该放在操作的后面，否则iterations=1时新加入的元素不会参与排序？
 2. changes:
 - 把population排序放到了循环末尾
-- 最后的stream_list循环for i in range(10)，改为了挑分最高的一个instead of十个
+- 最后的stream_list循环for i in range(10)改为了挑分最高的一个instead of十个；为了提升速度把2000次变换暂时改为了200次
