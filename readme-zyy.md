@@ -2,7 +2,8 @@
 以下方法选择一个：
 - Linux下运行setup.sh即可
 - Linux或Windows下安装flask, lilypond, music21, python=3.10.11或更高版本
-添加lilypond至Path变量，或手动修改main.py中lilypond的位置
+
+保证lilypond添加至Path变量，或手动修改main.py中lilypond的位置
 
 运行app.py生成本地网页
 
