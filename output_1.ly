@@ -10,30 +10,31 @@ color = #(define-music-function (parser location color) (string?) #{
     
 \header { } 
 \score  { 
- \new Voice { \new Voice { \key cis \major 
-                f' 8  
+ \new Voice { \new Voice { \key g \major 
+                c' 8  
+                cis' 8  
                 ees' 8  
-                cis' 4  
-                gis' 4  
+                a' 8  
+                bes' 8  
+                a' 8  
+                bes' 8  
+                gis' 8  
+                e' 4  
+                a' 4  
                 bes' 4  
-                cis' 4  
+                a' 4  
+                gis' 8  
+                bes' 8  
+                ees' 8  
+                g' 8  
+                g' 8  
+                g' 8  
+                a' 8  
+                ees' 8  
+                d' 4  
+                a' 4  
+                bes' 4  
                 f' 4  
-                ees' 8  
-                c' 8  
-                cis' 8  
-                f' 8  
-                ees' 8  
-                c' 8  
-                cis' 8  
-                ees' 8  
-                cis' 8  
-                f' 8  
-                ees' 4  
-                ees' 4  
-                f' 8  
-                ees' 8  
-                cis' 4  
-                gis' 4  
                  } 
                
  

@@ -32,10 +32,17 @@ def generate_png(style):
         lilypond_file_path = f'output_{index + 1}.ly'
         # 使用 LilyPond 生成乐谱图片
         print("running lilypond...")
+        # 如果没有添加环境变量需要修改路径
+
+        # process = subprocess.run(
+        #             [r'/usr/bin/lilypond', '--png',  lilypond_file_path],
+        #             capture_output=True, text=True, encoding='utf-8'  # 添加 encoding 参数
+        #         )
+        
         process = subprocess.run(
-                    [r'/usr/bin/lilypond', '--png',  lilypond_file_path],
+                    [r'lilypond', '--png',  lilypond_file_path],
                     capture_output=True, text=True, encoding='utf-8'  # 添加 encoding 参数
-                )
+                    )
 
         if process.returncode != 0:
             print(f"LilyPond 命令执行失败，文件: {lilypond_file_path}")

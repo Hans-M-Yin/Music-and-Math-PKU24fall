@@ -12,6 +12,6 @@ python3 -m venv musicMath
 source musciMath/bin/activate
 
 # 安装 Flask 和 music21
-pip install Flask music21
+pip install Flask music21 lilypond
 
 echo "虚拟环境已创建并安装所需包。"

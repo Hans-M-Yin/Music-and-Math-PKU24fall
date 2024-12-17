@@ -21,5 +21,9 @@ def create_image():
     response.headers['Cache-Control'] = 'no-store'  # 禁用缓存
     return response
 
+# Linux
+# if __name__ == '__main__':
+#     app.run(debug=True)
+# 在Windows上需要改ip地址和端口号
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=8080, debug=True)
