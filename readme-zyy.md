@@ -1,7 +1,6 @@
 ### 运行环境
 以下方法选择一个：
-- Linux下运行setup.sh即可
-  - 如果没有进入(musicMath)环境，手动运行source musicMath/bin/activate
+- Linux下运行setup.sh并且手动运行source musicMath/bin/activate激活虚拟环境
 - Linux或Windows下安装flask, lilypond, music21, python=3.10.11或更高版本
 
 保证lilypond添加至Path变量，或手动修改main.py中lilypond的位置
@@ -9,7 +8,7 @@
 运行app.py生成本地网页
 
 ### 功能
-根据选择的选项(classical, pop, rock, electric, jazz)传入相应style参数到(main.py)generate_png(style), 在对应的style-music.txt中**随机**抽取一行音符，传入run_generic_algorithm()，将输出以.ly格式写入output_1文件，调用lilypond将.ly文件转为.png的乐谱图片，显示在网页上
+根据选择的选项(classical, pop, rock, electric, jazz)传入相应style参数到(main.py)generate_png(style), 在对应的style-music.txt中**随机**(music_to_vector.py中musicTxt_to_vector(style)改为了用random)抽取一行音符，传入run_generic_algorithm()，将输出以.ly格式写入output_1文件，调用lilypond将.ly文件转为.png的乐谱图片，显示在网页上
 - 把museScore换成了lilypond来呈现乐谱，因为后者不需要图形界面可以直接导出png
 
 ### to be modified
