@@ -1,6 +1,7 @@
 ### 运行环境
 以下方法选择一个：
 - Linux下运行setup.sh即可
+  - 如果没有进入(musicMath)环境，手动运行source musicMath/bin/activate
 - Linux或Windows下安装flask, lilypond, music21, python=3.10.11或更高版本
 
 保证lilypond添加至Path变量，或手动修改main.py中lilypond的位置
