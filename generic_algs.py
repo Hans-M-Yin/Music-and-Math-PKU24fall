@@ -3,10 +3,6 @@ import random
 import numpy as np
 from collections import Counter
 
-keys = [
-    'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B',  # 大调
-    'Cm', 'C#m', 'Dm', 'D#m', 'Em', 'Fm', 'F#m', 'Gm', 'G#m', 'Am', 'A#m', 'Bm'  # 小调
-]
 
 class stream_with_score:
     def __init__(self, strm):
@@ -92,11 +88,7 @@ def operator_shifttone_2 (melody1:stream, melody2:stream) -> stream.Stream:
     s_transposed = melody1.transpose(inter)
     return octave_normalize(s_transposed)
 
-def operator_shifttone_1(melody:stream) -> stream.Stream:
-    random_key = key.Key(random_key_name = random.choice(keys))
-    interval = random_key.tonic.transpose(melody[0].tonic)  # 找到目标调性音高的音程
-    s_transposed = stream.Stream(melody).transpose(interval)
-    s_transposed[0] = key.Key(random_key)
+
 
 def handle_crossover(melody1:stream, random_start1: int, random_end1: int):
     cur1 = 0
@@ -193,7 +185,7 @@ def operator_crossover(melody1:stream, melody2:stream):
 def operator_reflection(melody:stream) -> stream.Stream:
 
     ns = stream.Stream()
-    pivot_pitch = key.Key(random_key_name = random.choice(keys)).tonic
+    pivot_pitch = melody[0].tonic
     # print(pivot_pitch)
     for i in range(1,len(melody)):
         if isinstance(melody[i], note.Note):
@@ -207,7 +199,7 @@ def operator_reflection(melody:stream) -> stream.Stream:
     
     nk = ns.analyze('key')
     ns.insert(0,nk)
-    return octave_normalize(ns)
+    return keyharmony(octave_normalize(ns))
 
 def operator_inversion(melody:stream) -> stream.Stream:
 
@@ -289,7 +281,15 @@ def operator_basic_mutation(melody:stream) -> stream.Stream:
             ns.append(melody[i])
     return octave_normalize(ns)
 
-def run_generic_algorithm(melodies:list[stream.Stream], iterations = 1, criteria = 1.0, total = 15, fraction = 0.7) -> stream:
+def keyharmony(melody:stream) -> stream.Stream:
+    k = melody[0]
+    for n in melody.notes:
+        nstep = n.pitch.step
+        rightAccidental = k.accidentalByStep(nstep)
+        n.pitch.accidental = rightAccidental
+    return melody
+
+def run_generic_algorithm(melodies:list[stream.Stream], iterations = 1, criteria = 0.95, total = 15, fraction = 0.7) -> stream:
     iter = 0
     best_performance = 100.0
 
@@ -325,7 +325,7 @@ def run_generic_algorithm(melodies:list[stream.Stream], iterations = 1, criteria
                 population.append(stream_with_score(ns))
                 assert(ns.quarterLength == 16)
         ### add
-        population = sorted(population, key=lambda x: x.score)
+        population = sorted(population, key=lambda x: x.score, reverse=True)
     print("Generic Algorithms done.")
     stream_list = []
     # for i in range(10):
