@@ -221,12 +221,11 @@ def operator_basic_mutation(melody:stream) -> stream.Stream:
     return octave_normalize(ns)
 
 def keyharmony(melody:stream) -> stream.Stream:
-    ks = melody[0]
-    for n in melody.notes:  # we need to recurse because the notes are in measures...
-        nStep = n.pitch.step
-        rightAccidental = ks.accidentalByStep(nStep)
+    k = melody[0]
+    for n in melody.notes:
+        nstep = n.pitch.step
+        rightAccidental = k.accidentalByStep(nstep)
         n.pitch.accidental = rightAccidental
-    assert(melody.quarterLength == 16 )
     return melody
 
 def run_generic_algorithm(melodies:list[stream.Stream], iterations = 1, criteria = 1.0, total = 15, fraction = 0.7) -> stream:
