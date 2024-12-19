@@ -266,19 +266,15 @@ def operator_inversion(melody:stream) -> stream.Stream:
     return octave_normalize(ns)
 
 def octave_normalize(melody:stream) -> stream.Stream:
-    lowest_note = None
-    highest_note = None
-    
-    for element in melody.notes:  # 使用 flatten() 确保访问所有音符
-        # print("haha")
+    for element in melody.notes:  
         if isinstance(element, note.Note):  # 确保是音符对象
-            if lowest_note is None or element.pitch < lowest_note.pitch:
-                lowest_note = element
-            elif highest_note is None or element.pitch > highest_note.pitch:
-                highest_note = element
+            if element.octave is not None:
+                if element.octave < 4:
+                    element.octave = 4
+                elif element.octave > 5:
+                    element.octave = 5
 
-    if (isinstance(lowest_note, note.Note) is False or isinstance(highest_note, note.Note) is False):
-        return melody
+    return melody
     
     transform = 0
     
@@ -314,9 +310,9 @@ def operator_basic_mutation(melody:stream) -> stream.Stream:
             cur += 1
         else:
             ns.append(melody[i])
-    return octave_normalize(ns)
+    return keyharmony(octave_normalize(ns))
 
-def run_generic_algorithm(melodies:list[stream.Stream], iterations = 1000, criteria = 0.95, total = 50) -> stream:
+def run_generic_algorithm(melodies:list[stream.Stream], iterations = 3, criteria = 0.95, total = 50) -> stream:
     iter = 0
     best_performance = 0.0
 
@@ -333,7 +329,8 @@ def run_generic_algorithm(melodies:list[stream.Stream], iterations = 1000, crite
         l = len(population)
         ### change parameter
         for i in range(0,l):
-            op = random.randint(-1,4)
+            op = random.randint(0,3)
+            print(op)
             if op == 0:
                 rd2 = random.randint(0,len(population)-1)
                 ns1, ns2 = operator_crossover(population[i].stream, population[rd2].stream)
@@ -341,18 +338,26 @@ def run_generic_algorithm(melodies:list[stream.Stream], iterations = 1000, crite
                 population.append(stream_with_score(ns2))
                 assert(ns1.quarterLength == 16)
                 assert(ns2.quarterLength == 16)
+                # print(population[len(population)-1].score)
+                # ns2.show('musicxml', app = r'C:\\Program Files\\MuseScore 4\\bin\\MuseScore4.exe')
             elif op == 1:
                 ns = operator_reflection(population[i].stream)
                 population.append(stream_with_score(ns))
                 assert(ns.quarterLength == 16)
+                # print(population[len(population)-1].score)
+                # ns.show('musicxml', app = r'C:\\Program Files\\MuseScore 4\\bin\\MuseScore4.exe')
             elif op == 2:
                 ns = operator_inversion(population[i].stream)
                 population.append(stream_with_score(ns))
                 assert(ns.quarterLength == 16)
+                # print(population[len(population)-1].score)
+                # ns.show('musicxml', app = r'C:\\Program Files\\MuseScore 4\\bin\\MuseScore4.exe')
             else:
                 ns = operator_basic_mutation(population[i].stream)
                 population.append(stream_with_score(ns))
                 assert(ns.quarterLength == 16)
+                # print(population[len(population)-1].score)
+                # ns.show('musicxml', app = r'C:\\Program Files\\MuseScore 4\\bin\\MuseScore4.exe')
         ### add
         if flag:
             population = population[oril:]
@@ -362,6 +367,11 @@ def run_generic_algorithm(melodies:list[stream.Stream], iterations = 1000, crite
         if best_performance > criteria:
             break
         iter += 1
+        print(population[0].score)
+        ns.show('musicxml', app = r'C:\\Program Files\\MuseScore 4\\bin\\MuseScore4.exe')
+
+            
+
     print("Generic Algorithms done.")
     stream_list = []
     # for i in range(10):
