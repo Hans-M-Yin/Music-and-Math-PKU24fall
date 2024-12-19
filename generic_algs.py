@@ -163,6 +163,14 @@ def handle_crossover(melody1:stream, random_start1: int, random_end1: int):
     return (s_1, m_1, e_1)
 
 
+def keyharmony(melody:stream)->stream.Stream:
+    k = melody[0]
+    for n in melody.notes:
+        nstep = n.pitch.step
+        rightAccidental = k.accidentalByStep(nstep)
+        n.pitch.accidental = rightAccidental
+    return melody
+
 
 def operator_crossover(melody1:stream, melody2:stream):
     
@@ -226,7 +234,7 @@ def operator_reflection(melody:stream) -> stream.Stream:
     
     nk = ns.analyze('key')
     ns.insert(0,nk)
-    return octave_normalize(ns)
+    return keyharmony(octave_normalize(ns))
 
 def operator_inversion(melody:stream) -> stream.Stream:
 
@@ -308,21 +316,23 @@ def operator_basic_mutation(melody:stream) -> stream.Stream:
             ns.append(melody[i])
     return octave_normalize(ns)
 
-def run_generic_algorithm(melodies:list[stream.Stream], iterations = 1, criteria = 1.0, total = 15, fraction = 0.7) -> stream:
+def run_generic_algorithm(melodies:list[stream.Stream], iterations = 1000, criteria = 0.95, total = 50) -> stream:
     iter = 0
-    best_performance = 100.0
+    best_performance = 0.0
 
     population = []
     for strm in melodies:
         population.append(stream_with_score(strm))
+    oril = len(population)
     ### add
-    population = sorted(population, key=lambda x: x.score)
-    while iter < iterations and best_performance > criteria:
+    population = sorted(population, key=lambda x: x.score, reverse=True)
+    flag = True
+    while iter < iterations:
         # population = sorted(population, key=lambda x: x.score)
         population = population[:total]
-        best_performance = population[0].score
+        l = len(population)
         ### change parameter
-        for i in range(0,200):
+        for i in range(0,l):
             op = random.randint(-1,4)
             if op == 0:
                 rd2 = random.randint(0,len(population)-1)
@@ -344,7 +354,14 @@ def run_generic_algorithm(melodies:list[stream.Stream], iterations = 1, criteria
                 population.append(stream_with_score(ns))
                 assert(ns.quarterLength == 16)
         ### add
-        population = sorted(population, key=lambda x: x.score)
+        if flag:
+            population = population[oril:]
+        flag = False
+        population = sorted(population, key=lambda x: x.score, reverse=True)
+        best_performance = population[0].score
+        if best_performance > criteria:
+            break
+        iter += 1
     print("Generic Algorithms done.")
     stream_list = []
     # for i in range(10):
