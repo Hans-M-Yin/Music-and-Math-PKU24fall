@@ -55,10 +55,10 @@ def fitness_function(melody: stream.Stream) -> float:
         range_fitness = 0.0
     else:
         pitch_range = max(pitches) - min(pitches)
-        if 12 <= pitch_range <= 24:# 12 24 可改为其他值
+        if 12 <= pitch_range <= 20:
             range_fitness = 1
         else:
-            range_fitness = 1 / (1 + abs(pitch_range - 18))  # 18可改为其他值
+            range_fitness = 1 / (1 + abs(pitch_range - 16))
 
     # 旋律重复比例
     note_pairs = [(melody.flatten().notes[i].pitch.name, melody.flatten().notes[i + 1].pitch.name)
@@ -69,22 +69,41 @@ def fitness_function(melody: stream.Stream) -> float:
     repeated_count = sum(count for _, count in pair_counts.items() if count > 1)
     repetition_fitness = 1 - (repeated_count / total_pairs if total_pairs > 0 else 0)
 
-    weight_note = 0.2  # 音符频率权重
+    # 音符时长分布合理性
+    if not durations:
+        duration_distribution_fitness = 0.0
+    else:
+        duration_counts = Counter(durations)
+        total_duration_count = len(durations)
+        probabilities = [count / total_duration_count for count in duration_counts.values()]
+        entropy = -np.sum([p * np.log2(p) for p in probabilities if p > 0])
+        if entropy >= 0.5 and entropy <= 1.5: 
+            duration_distribution_fitness = 1
+        else:
+            duration_distribution_fitness = 1 / (1 + abs(entropy - 1))
+
+    # 旋律轮廓的平滑性
+    if len(pitches) < 2:
+        contour_smoothness_fitness = 0.0
+    else:
+        pitch_diffs = [abs(pitches[i + 1] - pitches[i]) for i in range(len(pitches) - 1)]
+        sum_diffs = sum(pitch_diffs)
+        contour_smoothness_fitness = 1 / (1 + sum_diffs)
+
+    weight_note = 0.15  # 音符频率权重
     weight_interval = 0.25  # 音程权重
-    weight_rhythm = 0.25  # 节奏规律性权重
+    weight_rhythm = 0.2  # 节奏规律性权重
     weight_range = 0.15  # 音域范围合理性权重
-    weight_repetition = 0.15  # 旋律重复性权重
-    # print("note_fitness: ", note_fitness)
-    # print("interval_fitness: ", interval_fitness)
-    # print("rhythm_fitness: ", rhythm_fitness)
-    # print("range_fitness: ", range_fitness)
-    # print("repetition_fitness: ", repetition_fitness)
+    weight_repetition = 0.1  # 旋律重复性权重
+    weight_duration_distribution = 0.1 # 音符时长分布合理性权重
+    weight_contour_smoothness = 0.05  # 旋律轮廓平滑性权重
     return (weight_note * note_fitness +
             weight_interval * interval_fitness +
             weight_rhythm * rhythm_fitness +
             weight_range * range_fitness +
-            weight_repetition * repetition_fitness)
-
+            weight_repetition * repetition_fitness
+            + weight_duration_distribution * duration_distribution_fitness
+            + weight_contour_smoothness * contour_smoothness_fitness)
 def operator_shifttone_2 (melody1:stream, melody2:stream) -> stream.Stream:
     # print(melody1[0])
     target_key = key.Key(melody2[0].tonic, melody2[0].mode)
@@ -207,7 +226,7 @@ def operator_reflection(melody:stream) -> stream.Stream:
     
     nk = ns.analyze('key')
     ns.insert(0,nk)
-    return keyharmony(octave_normalize(ns))
+    return octave_normalize(ns)
 
 def operator_inversion(melody:stream) -> stream.Stream:
 
@@ -289,14 +308,6 @@ def operator_basic_mutation(melody:stream) -> stream.Stream:
             ns.append(melody[i])
     return octave_normalize(ns)
 
-def keyharmony(melody:stream) -> stream.Stream:
-    k = melody[0]
-    for n in melody.notes:
-        nstep = n.pitch.step
-        rightAccidental = k.accidentalByStep(nstep)
-        n.pitch.accidental = rightAccidental
-    return melody
-
 def run_generic_algorithm(melodies:list[stream.Stream], iterations = 1, criteria = 1.0, total = 15, fraction = 0.7) -> stream:
     iter = 0
     best_performance = 100.0
@@ -304,49 +315,39 @@ def run_generic_algorithm(melodies:list[stream.Stream], iterations = 1, criteria
     population = []
     for strm in melodies:
         population.append(stream_with_score(strm))
+    ### add
+    population = sorted(population, key=lambda x: x.score)
     while iter < iterations and best_performance > criteria:
-        population = sorted(population, key=lambda x: x.score)
+        # population = sorted(population, key=lambda x: x.score)
         population = population[:total]
         best_performance = population[0].score
-
-        for i in range(0,10):
-            op = 1
-            
+        ### change parameter
+        for i in range(0,200):
+            op = random.randint(-1,4)
             if op == 0:
-                #print(0)
                 rd2 = random.randint(0,len(population)-1)
                 ns1, ns2 = operator_crossover(population[i].stream, population[rd2].stream)
                 population.append(stream_with_score(ns1))
                 population.append(stream_with_score(ns2))
                 assert(ns1.quarterLength == 16)
                 assert(ns2.quarterLength == 16)
-                # print(ns1.quarterLength)
-                # print(ns2.quarterLength)
-                # ns1.show('musicxml', app = r'C:\\Program Files\\MuseScore 4\\bin\\MuseScore4.exe')
-                # ns2.show('musicxml', app = r'C:\\Program Files\\MuseScore 4\\bin\\MuseScore4.exe')
             elif op == 1:
-                #print(1)
                 ns = operator_reflection(population[i].stream)
-                # print(ns.quarterLength)
                 population.append(stream_with_score(ns))
                 assert(ns.quarterLength == 16)
-                ns.show('musicxml', app = r'C:\\Program Files\\MuseScore 4\\bin\\MuseScore4.exe')
             elif op == 2:
-                #print(2)
                 ns = operator_inversion(population[i].stream)
-                # print(ns.quarterLength)
                 population.append(stream_with_score(ns))
                 assert(ns.quarterLength == 16)
-                # ns.show('musicxml', app = r'C:\\Program Files\\MuseScore 4\\bin\\MuseScore4.exe')
             else:
-                #print(3)
                 ns = operator_basic_mutation(population[i].stream)
-                #print(ns.quarterLength)
                 population.append(stream_with_score(ns))
                 assert(ns.quarterLength == 16)
-                # ns.show('musicxml', app = r'C:\\Program Files\\MuseScore 4\\bin\\MuseScore4.exe')
+        ### add
+        population = sorted(population, key=lambda x: x.score)
     print("Generic Algorithms done.")
     stream_list = []
-    for i in range(10):
-        stream_list.append(population[i].stream)
+    # for i in range(10):
+    #    stream_list.append(population[i].stream)
+    stream_list.append(population[0].stream)
     return stream_list
