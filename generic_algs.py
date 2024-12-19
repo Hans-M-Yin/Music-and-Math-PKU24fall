@@ -256,6 +256,16 @@ def octave_normalize(melody:stream) -> stream.Stream:
     lowest_note = None
     highest_note = None
     
+
+    for element in melody.notes:
+        if isinstance(element, note.Note):
+            if element.octave is not None:
+                if element.octave < 4:
+                    element.octave=4
+                elif element.octave > 5:
+                    element.octave=5
+    return melody
+
     for element in melody.notes:  # 使用 flatten() 确保访问所有音符
         # print("haha")
         if isinstance(element, note.Note):  # 确保是音符对象
@@ -301,7 +311,7 @@ def operator_basic_mutation(melody:stream) -> stream.Stream:
             cur += 1
         else:
             ns.append(melody[i])
-    return octave_normalize(ns)
+    return keyharmony(octave_normalize(ns))
 
 def keyharmony(melody:stream) -> stream.Stream:
     k = melody[0]
@@ -334,7 +344,7 @@ def run_generic_algorithm(melodies:list[stream.Stream], iterations = 1000, crite
         # 每一次对population的所有元素做一次迭代
         l = len(population)
         for i in range(0,l):
-            op = random.randint(-1,4)
+            op = random.randint(0,3)
             if op == 0:
                 rd2 = random.randint(0,len(population)-1)
                 ns1, ns2 = operator_crossover(population[i].stream, population[rd2].stream)
