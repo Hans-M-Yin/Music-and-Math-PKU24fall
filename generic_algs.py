@@ -10,6 +10,7 @@ class stream_with_score:
         self.score = fitness_function(strm)
     
 
+
 def fitness_function(melody: stream.Stream) -> float:
 
     # 音符频率
@@ -51,10 +52,10 @@ def fitness_function(melody: stream.Stream) -> float:
         range_fitness = 0.0
     else:
         pitch_range = max(pitches) - min(pitches)
-        if 12 <= pitch_range <= 24:# 12 24 可改为其他值
+        if 12 <= pitch_range <= 24:
             range_fitness = 1
         else:
-            range_fitness = 1 / (1 + abs(pitch_range - 18))  # 18可改为其他值
+            range_fitness = 1 / (1 + abs(pitch_range - 18))
 
     # 旋律重复比例
     note_pairs = [(melody.flatten().notes[i].pitch.name, melody.flatten().notes[i + 1].pitch.name)
@@ -65,21 +66,42 @@ def fitness_function(melody: stream.Stream) -> float:
     repeated_count = sum(count for _, count in pair_counts.items() if count > 1)
     repetition_fitness = 1 - (repeated_count / total_pairs if total_pairs > 0 else 0)
 
-    weight_note = 0.2  # 音符频率权重
+    # 音符时长分布合理性
+    if not durations:
+        duration_distribution_fitness = 0.0
+    else:
+        duration_counts = Counter(durations)
+        total_duration_count = len(durations)
+        probabilities = [count / total_duration_count for count in duration_counts.values()]
+        entropy = -np.sum([p * np.log2(p) for p in probabilities if p > 0])
+        if entropy >= 0.5 and entropy <= 1.5: 
+            duration_distribution_fitness = 1
+        else:
+            duration_distribution_fitness = 1 / (1 + abs(entropy - 1))
+
+    # 旋律轮廓的平滑性
+    if len(pitches) < 2:
+        contour_smoothness_fitness = 0.0
+    else:
+        pitch_diffs = [abs(pitches[i + 1] - pitches[i]) for i in range(len(pitches) - 1)]
+        sum_diffs = sum(pitch_diffs)
+        contour_smoothness_fitness = 1 / (1 + sum_diffs)
+
+    weight_note = 0.15  # 音符频率权重
     weight_interval = 0.25  # 音程权重
-    weight_rhythm = 0.25  # 节奏规律性权重
+    weight_rhythm = 0.2  # 节奏规律性权重
     weight_range = 0.15  # 音域范围合理性权重
-    weight_repetition = 0.15  # 旋律重复性权重
-    # print("note_fitness: ", note_fitness)
-    # print("interval_fitness: ", interval_fitness)
-    # print("rhythm_fitness: ", rhythm_fitness)
-    # print("range_fitness: ", range_fitness)
-    # print("repetition_fitness: ", repetition_fitness)
+    weight_repetition = 0.1  # 旋律重复性权重
+    weight_duration_distribution = 0.1 # 音符时长分布合理性权重
+    weight_contour_smoothness = 0.05  # 旋律轮廓平滑性权重
     return (weight_note * note_fitness +
             weight_interval * interval_fitness +
             weight_rhythm * rhythm_fitness +
             weight_range * range_fitness +
-            weight_repetition * repetition_fitness)
+            weight_repetition * repetition_fitness
+            + weight_duration_distribution * duration_distribution_fitness
+            + weight_contour_smoothness * contour_smoothness_fitness)
+
 
 def operator_shifttone_2 (melody1:stream, melody2:stream) -> stream.Stream:
     # print(melody1[0])
