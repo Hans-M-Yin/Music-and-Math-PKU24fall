@@ -311,21 +311,29 @@ def keyharmony(melody:stream) -> stream.Stream:
         n.pitch.accidental = rightAccidental
     return melody
 
-def run_generic_algorithm(melodies:list[stream.Stream], iterations = 1, criteria = 0.95, total = 15, fraction = 0.7) -> stream:
+
+"""
+输入melodies 输出stream为遗传算法生成的乐谱
+iterations: 迭代次数 每次迭代对population的所有元素做一次变异
+criteria: 终止迭代的条件
+total: population中的最大元素个数
+"""
+def run_generic_algorithm(melodies:list[stream.Stream], iterations = 1000, criteria = 0.95, total = 50) -> stream:
     iter = 0
-    best_performance = 100.0
+    best_performance = 0.0
 
     population = []
     for strm in melodies:
         population.append(stream_with_score(strm))
+    oril = len(population)
     ### add
-    population = sorted(population, key=lambda x: x.score)
-    while iter < iterations and best_performance > criteria:
-        # population = sorted(population, key=lambda x: x.score)
+    population = sorted(population, key=lambda x: x.score, reverse=True)
+    flag = True
+    while iter < iterations:
         population = population[:total]
-        best_performance = population[0].score
-        ### change parameter
-        for i in range(0,200):
+        # 每一次对population的所有元素做一次迭代
+        l = len(population)
+        for i in range(0,l):
             op = random.randint(-1,4)
             if op == 0:
                 rd2 = random.randint(0,len(population)-1)
@@ -346,8 +354,16 @@ def run_generic_algorithm(melodies:list[stream.Stream], iterations = 1, criteria
                 ns = operator_basic_mutation(population[i].stream)
                 population.append(stream_with_score(ns))
                 assert(ns.quarterLength == 16)
-        ### add
+        # 如果是第一次迭代，因为要避免已有乐谱一直获得最高分的情况，需要进行截断——
+        if flag:
+            population = population[oril:]
+        flag = False
         population = sorted(population, key=lambda x: x.score, reverse=True)
+        best_performance = population[0].score
+        if best_performance > criteria:
+            break
+        iter += 1
+
     print("Generic Algorithms done.")
     stream_list = []
     # for i in range(10):

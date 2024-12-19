@@ -17,7 +17,7 @@ def generate_png(style):
         melodies.append(vector_to_stream(vecs[i][0], vecs[i][1]))
 
     print("running generic algorithm...")
-    s = run_generic_algorithm(melodies, total=1)
+    s = run_generic_algorithm(melodies)
 
     print("writing lilypond files...")
     for index, ss in enumerate(s):
