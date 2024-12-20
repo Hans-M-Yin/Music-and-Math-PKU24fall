@@ -7,26 +7,26 @@
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </head>
 <body>
-    <h1>选择音乐风格生成乐谱</h1>
+    <h1>遗传算法生成乐谱</h1>
     <form id="musicStyleForm">
-        <label for="style">选择音乐风格:</label>
-        <select name="style" id="style">
-            <option value="classical">古典</option>
-            <option value="jazz">爵士</option>
-            <option value="pop">流行</option>
-            <option value="rock">摇滚</option>
-            <option value="electronic">电子</option>
-        </select>
+
         <button type="submit">生成乐谱</button>
     </form>
     
     <div id="statusMessage" style="display:none;">正在生成图像，请稍候...</div>
-    <img id="result" src="" alt="生成的乐谱" style="display:none;"/>
-    
+
+    <div>
+    <audio id="audioPlayer" controls style="display:none;">
+    <source src="" type="audio/mpeg">
+    Your browser does not support the audio element.
+    </audio>
+
+        <img id="result" src="" alt="生成的乐谱" style="display:none;"/>
+    </div>
     <script>
         document.getElementById('musicStyleForm').onsubmit = function(event) {
             event.preventDefault();  // 阻止默认表单提交
-            
+
             const img = document.getElementById('result');
             const statusMessage = document.getElementById('statusMessage');
             img.style.display = 'none';  // 隐藏图像
@@ -48,10 +48,28 @@
                 img.src = imgUrl;  // 设置图像源
                 img.style.display = 'block';  // 显示图像
                 statusMessage.style.display = 'none';  // 隐藏状态消息
+
+                // 在第一个请求成功后再发送第二个请求
+                return fetch('/generate_audio', {
+                    method: 'POST',
+                    body: new URLSearchParams(new FormData(this)),
+                });
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.blob();  // 获取音频blob
+                }
+                throw new Error('音频生成网络错误');
+            })
+            .then(blob => {
+                const audioUrl = URL.createObjectURL(blob);  // 创建音频URL
+                audioPlayer.src = audioUrl;  // 设置音频源
+                audioPlayer.style.display = 'block';  // 显示音频播放器
+                audioPlayer.play();  // 自动播放音频
             })
             .catch(error => {
                 console.error('错误:', error);
-                statusMessage.textContent = '生成图像时出错。请重试。';  // 更新状态消息
+                statusMessage.textContent = '生成音频时出错。请重试。';
             });
         };
     </script>
